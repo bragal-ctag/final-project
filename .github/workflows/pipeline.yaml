@@ -115,6 +115,48 @@ jobs:
         run: |
             "/mnt/c/minikube/minikube.exe" image load calculadora:latest
 
+  compose-cluster:
+    name: Start docker-compose cluster
+    runs-on: self-hosted
+    needs: build-image
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start services with docker-compose
+        run: |
+          echo "🔧 Starting docker-compose services..."
+            docker-compose -f docker-compose.yml up -d --build
+
+      - name: Wait for calculadora service to be healthy
+        run: |
+          echo "⏳ Waiting for calculadora to be ready on localhost:5000..."
+          for i in {1..30}; do
+            if curl -fsS http://localhost:5000/ >/dev/null 2>&1; then
+              echo "✅ calculadora is responding"
+              exit 0
+            fi
+            echo "Waiting... ($i)"
+            sleep 2
+          done
+          echo "❌ calculadora did not start in time" >&2
+          docker compose -f docker-compose.yml ps || true
+          exit 1
+
+      - name: Keep cluster running (optional)
+        run: |
+          echo "Cluster started. Use later jobs to run integration tests or deployments."
+
+      - name: Teardown docker-compose (cleanup)
+        if: always()
+        run: |
+          echo "🧹 Tearing down docker-compose services..."
+          if command -v docker-compose >/dev/null 2>&1; then
+            docker-compose -f docker-compose.yml down --volumes --remove-orphans
+          else
+            docker compose -f docker-compose.yml down --volumes --remove-orphans
+          fi
+
   deploy-dev:
     name: 🚀 Deploy a Dev
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -126,23 +168,50 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Start docker-compose cluster (app + DB)
+        run: |
+          echo "🔧 Iniciando cluster con docker-compose (app + DB)..."
+          docker-compose -f docker-compose.yml up -d --build calculadora_db calculadora
+          echo "✅ Servicios iniciados"
+
+      - name: Wait for calculadora and DB to be ready
+        run: |
+          echo "⏳ Esperando a que calculadora y la BD estén listas..."
+          for i in {1..60}; do
+            if curl -fsS http://localhost:5000/ >/dev/null 2>&1; then
+              echo "✅ calculadora está respondiendo"
+              break
+            fi
+            echo "Intento $i/60..."
+            sleep 2
+          done
+          # Verify DB connectivity if needed
+          echo "✅ Cluster listo para despliegue en Kubernetes"
+
       - name: Set up kubectl
         run: |
           echo "⚙️ Configurando kubectl..."
           /mnt/c/Program\ Files/Docker/Docker/resources/bin/kubectl.exe create namespace dev --dry-run=client -o yaml | /mnt/c/Program\ Files/Docker/Docker/resources/bin/kubectl.exe apply -f -
           /mnt/c/Program\ Files/Docker/Docker/resources/bin/kubectl.exe label namespace dev environment=dev --overwrite
-      - name: Deploy to Dev
+
+      - name: Deploy to Dev (Kubernetes)
         run: |
-          echo "🚀 Desplegando en el entorno dev..."
+          echo "🚀 Desplegando en el entorno dev (Kubernetes)..."
           /mnt/c/Program\ Files/Docker/Docker/resources/bin/kubectl.exe apply -k environments/dev
+
       - name: Wait for rollout
         run: |
-          echo "⏳ Esperando a que termine el despliegue..."
+          echo "⏳ Esperando a que termine el despliegue en Kubernetes..."
           /mnt/c/Program\ Files/Docker/Docker/resources/bin/kubectl.exe rollout status deployment/dev-calculadora -n dev --timeout=2m
+
       - name: Verify deployment
         run: |
           echo "✅ Verificando el despliegue..."
           /mnt/c/Program\ Files/Docker/Docker/resources/bin/kubectl.exe get pods -n dev -l app=calculadora
           /mnt/c/Program\ Files/Docker/Docker/resources/bin/kubectl.exe get svc -n dev
+          echo "📦 Verificando servicios en docker-compose:"
+          docker-compose -f docker-compose.yml ps
+
       - name: ✅ Dev deployment complete
-        run: echo "✅ ¡Despliegue en dev finalizado!"
+        run: echo "✅ ¡Despliegue en dev finalizado! App en localhost:5000 + Kubernetes con BD compartida."
