@@ -101,7 +101,7 @@ jobs:
           "
   # Build and deploy job to Minikube dev environment
   build-and-prepare:
-    name: Build Docker Image & Prepare Cluster
+    name: ⚙️ Build Docker Image & Prepare Cluster
     runs-on: self-hosted
     needs: test
     steps:
@@ -142,12 +142,39 @@ jobs:
         - name: ✅ Dev deployment complete
           run: echo "✅ ¡Despliegue en dev finalizado! App en Minikube con DB."
 
+  # Integration tests job using Docker Compose
+  integration-tests:
+    name: Run Integration Tests 🧩
+    runs-on: self-hosted
+    needs: deploy-dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start services with Docker Compose
+        run: |
+          echo "🚀 Levantando app y DB con Docker Compose..."
+          /mnt/c/Program\ Files/Docker/Docker/resources/bin/docker-compose.exe -f docker-compose.yml up -d
+          echo "⏳ Esperando a que los servicios estén listos..."
+          sleep 15  # Ajusta según el tiempo que tarde Postgres en estar healthy
+
+      - name: Run integration tests
+        run: |
+          echo "🧪 Ejecutando tests de integración contra la app y la DB..."
+          /mnt/c/Program\ Files/Docker/Docker/resources/bin/docker-docker-compose.exe exec calculadora pytest integration_test -v --disable-warnings
+
+      - name: Stop services
+        if: always()
+        run: |
+          echo "🛑 Deteniendo servicios..."
+          /mnt/c/Program\ Files/Docker/Docker/resources/bin/docker-docker-compose.exe down
+
   # Deploy to staging environment in Minikube
   deploy-staging:
       name: 🚀 Deploy to Staging (Minikube)
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       runs-on: self-hosted
-      needs: deploy-dev
+      needs: integration-tests
       environment:
         name: staging
         url: http://staging.local

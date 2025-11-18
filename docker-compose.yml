@@ -28,5 +28,21 @@ services:
     volumes:
       - ./:/app
 
+  # Container for running tests
+  tests:
+    build: .
+    container_name: integration-tests
+    command: >
+      sh -c "pytest -v --disable-warnings"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: testdb
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+    depends_on:
+      calculadora:
+        condition: service_healthy
+
 volumes:
   calculadora_db:
