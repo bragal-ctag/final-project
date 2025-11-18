@@ -24,23 +24,11 @@ services:
       # SQLAlchemy-compatible URL
       DATABASE_URL: postgresql://calc:calc@calculadora_db:5432/calculadora
     ports:
-      - "5000:5000"
-
-  # Container for running tests
-  tests:
-    build: .
-    container_name: integration-tests
-    command: >
-      sh -c "pytest -v --disable-warnings"
-    environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: testdb
-      POSTGRES_USER: test
-      POSTGRES_PASSWORD: test
-    depends_on:
-      calculadora:
-        condition: service_healthy
+      - "5000:5000"  
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 10s
+      retries: 5
 
 volumes:
   calculadora_db:
