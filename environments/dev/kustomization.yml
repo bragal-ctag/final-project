@@ -37,4 +37,4 @@ secretGenerator:
       - POSTGRES_USER=calc
       - POSTGRES_PASSWORD=calc
       - POSTGRES_DB=calculadora
-    behavior: merge
+    behavior: create
