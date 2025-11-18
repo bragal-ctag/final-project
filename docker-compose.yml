@@ -25,8 +25,6 @@ services:
       DATABASE_URL: postgresql://calc:calc@calculadora_db:5432/calculadora
     ports:
       - "5000:5000"
-    volumes:
-      - ./:/app
 
   # Container for running tests
   tests:
