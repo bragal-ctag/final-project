@@ -9,6 +9,9 @@
 ### Get the pods status on environment
 `kubectl get pods -n dev`
 
-### Redirect app ports
+### Redirect Dev app ports
 `kubectl port-forward svc/dev-calculadora-service 80:5000 -n dev`
+
+### Redirect staging app ports
+`kubectl port-forward svc/stagin-calculadora-service 80:5000 -n staging`
 
