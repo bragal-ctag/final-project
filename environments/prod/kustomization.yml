@@ -13,6 +13,9 @@ resources:
   - ../base_deployment
   - postgres-service.yaml
   - postgres-statefulset.yaml
+  - prometheus-deployment.yaml
+  - prometheus-service.yaml
+  - configmap.yaml
 
 configMapGenerator:
   - name: calculadora-config

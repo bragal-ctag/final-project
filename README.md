@@ -27,3 +27,14 @@
 ### SonarQube
 Password must be update first time and a token shall be configured as secret
 
+### Check the pods running on the environment
+`kubectl get pods -n prod`
+
+### List the services on the cluster
+`minikube service list -n prod`
+
+### Redirect prometheus service
+``kubectl port-forward svc/prod-prometheus 9090:9090`
+
+### Obtener contraseña argoCD
+`kubectl port-forward svc/argocd-server -n argocd 8080:443 > /dev/null 2>&1 &`
