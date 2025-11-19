@@ -174,16 +174,6 @@ jobs:
             sleep 5
           done
 
-      - name: Wait for DB table to exist
-        run: |
-          echo "⏳ Verificando que la tabla 'operations' existe en la base de datos..."
-          for i in {1..10}; do
-            /mnt/c/Program\ Files/Docker/Docker/resources/bin/docker-compose.exe exec calculadora_db \
-            psql -U calc -d calculadora -c "\dt" | grep operations && break
-            echo "Tabla no encontrada, esperando..."
-            sleep 5
-          done
-
       - name: Run integration tests inside app container
         run: |
           echo "🧪 Ejecutando tests de integración contra la app y la DB..."

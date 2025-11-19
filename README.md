@@ -15,3 +15,9 @@
 ### Redirect staging app ports
 `kubectl port-forward svc/stagin-calculadora-service 80:5000 -n staging`
 
+### Check test DDBB content
+`psql -U calc -d calculadora`
+`\l`
+`\dt`
+`SELECT * FROM operations;`
+
