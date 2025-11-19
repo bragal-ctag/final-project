@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 # Copy application code
 COPY app.py .
 COPY templates/ templates/
+COPY integration_test/ integration_test/
 
 # Create non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser appuser
