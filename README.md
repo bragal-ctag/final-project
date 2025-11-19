@@ -21,3 +21,6 @@
 `\dt`
 `SELECT * FROM operations;`
 
+### SonarQube
+Password must be update first time and a token shall be configured as secret
+
