@@ -18,6 +18,8 @@ resources:
   - prometheus/configmap.yaml
   - grafana/deployment.yaml
   - grafana/service.yaml
+  - node-exporter/deployment.yaml
+  - node-exporter/service.yaml
 
 configMapGenerator:
   - name: calculadora-config

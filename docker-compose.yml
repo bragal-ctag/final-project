@@ -17,6 +17,7 @@ services:
   # Calculator application
   calculadora:
     build: .
+    image: calculadora:latest
     depends_on:
       calculadora_db:
         condition: service_healthy
